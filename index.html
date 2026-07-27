@@ -1,50 +1,128 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b1020">
-  <title>Pokémon Rapid Scanner</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <style>
-    *{box-sizing:border-box}body{margin:0;background:#0b1020;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:720px;margin:auto;padding:12px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}h1{font-size:20px}.badge{background:#1f2937;padding:7px 10px;border-radius:999px;font-size:13px}.camera{position:relative;aspect-ratio:3/4;background:#000;border:2px solid #26324a;border-radius:18px;overflow:hidden}video{width:100%;height:100%;object-fit:cover}.guide{position:absolute;inset:8%;border:3px solid #ffffffbf;border-radius:14px;box-shadow:0 0 0 9999px #00000047}.status{position:absolute;left:12px;right:12px;bottom:12px;background:#050a14d9;padding:10px;border-radius:12px;text-align:center;font-weight:700}.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}button,select,input{min-height:46px;border:0;border-radius:12px;font-size:15px;padding:10px}button{font-weight:700}.primary{background:#facc15;color:#111827}.secondary{background:#273449;color:#fff}.danger{background:#7f1d1d;color:#fff}.panel{background:#121a2c;border:1px solid #24314a;border-radius:16px;padding:12px;margin-top:10px}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.muted{color:#aeb9cb;font-size:13px}.match{display:flex;gap:12px;align-items:center}.match img{width:88px;border-radius:7px}.name{font-size:20px;font-weight:800}.qty{font-size:22px;color:#fde047;font-weight:900}.choices{display:grid;gap:8px}.choice{display:flex;gap:10px;align-items:center;background:#1b263b;padding:8px;border-radius:10px}.choice img{width:55px;border-radius:4px}.hidden{display:none}.error{color:#fca5a5}canvas{display:none}dialog{border:0;border-radius:16px;background:#121a2c;color:#fff;width:min(92vw,520px)}dialog::backdrop{background:#000a}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08101f">
+<title>Pokémon Rapid Scanner</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#08101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:720px;margin:auto;padding:12px}.top{display:flex;align-items:center;justify-content:space-between;gap:8px}h1{font-size:21px;margin:8px 0}.badge{background:#1d293d;padding:7px 10px;border-radius:999px;font-size:13px}.camera{position:relative;aspect-ratio:3/4;background:#000;border:2px solid #33415c;border-radius:18px;overflow:hidden}video{width:100%;height:100%;object-fit:cover}.guide{position:absolute;inset:7%;border:3px solid #ffffffc9;border-radius:16px;box-shadow:0 0 0 9999px #0006;pointer-events:none}.status{position:absolute;left:12px;right:12px;bottom:12px;background:#030712dc;padding:11px;border-radius:12px;text-align:center;font-weight:800}.error{color:#fca5a5}.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}button,select,input{min-height:48px;border:0;border-radius:12px;font-size:15px;padding:10px}button{font-weight:800}.primary{background:#facc15;color:#111827}.secondary{background:#26354d;color:#fff}.danger{background:#7f1d1d;color:#fff}.panel{background:#111a2d;border:1px solid #26354d;border-radius:16px;padding:12px;margin-top:10px}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.muted{color:#aeb9cb;font-size:13px}.match{display:flex;gap:12px;align-items:center}.match img{width:90px;border-radius:8px}.name{font-size:21px;font-weight:900}.qty{font-size:23px;color:#fde047;font-weight:900}.choices{display:grid;gap:8px;margin-top:8px}.choice{display:flex;gap:10px;align-items:center;background:#1b263b;padding:8px;border-radius:11px;cursor:pointer}.choice img{width:58px;border-radius:5px}.switch{display:flex;align-items:center;gap:8px;margin-top:10px}.switch input{min-height:auto;width:22px;height:22px}canvas{display:none}dialog{border:0;border-radius:18px;background:#111a2d;color:#fff;width:min(92vw,540px);padding:22px}dialog::backdrop{background:#000b}.small{font-size:12px}.backend-good{color:#86efac}.backend-bad{color:#fca5a5}
+</style>
 </head>
 <body>
 <div class="app">
   <div class="top"><h1>Pokémon Rapid Scanner</h1><div class="badge" id="count">0 scanned</div></div>
   <div class="camera"><video id="video" playsinline muted></video><div class="guide"></div><div class="status" id="status">Open Settings first</div></div>
   <canvas id="canvas"></canvas>
-  <div class="controls"><button class="primary" id="start">Start Camera</button><button class="secondary" id="scan" disabled>Scan Card</button><button class="danger" id="undo">Undo</button></div>
-  <div class="panel"><div class="row"><select id="finish"><option>Normal</option><option>Reverse Holo</option><option>Holo</option><option>Cosmos Holo</option><option>Other</option><option>Unspecified</option></select><button class="secondary" id="settings">Settings</button></div></div>
-  <div class="panel" id="result"><div class="muted">Matched cards and duplicate quantity appear here.</div></div>
+  <div class="controls"><button class="primary" id="start">Start Camera</button><button class="secondary" id="scan" disabled>Scan Now</button><button class="danger" id="undo">Undo</button></div>
+  <div class="panel">
+    <div class="row"><select id="finish"><option>Normal</option><option>Reverse Holo</option><option>Holo</option><option>Cosmos Holo</option><option>Other</option><option>Unspecified</option></select><button class="secondary" id="settings">Settings</button></div>
+    <label class="switch"><input type="checkbox" id="rapid" checked> Continuous rapid scan</label>
+    <div class="muted">Hold each card steady. After it logs, remove it before showing the next card.</div>
+  </div>
+  <div class="panel" id="result"><div class="muted">Matched cards and duplicate quantities appear here.</div></div>
 </div>
 <dialog id="settingsDialog">
   <h2>Backend Settings</h2>
-  <p class="muted">Paste the Google Apps Script web-app URL ending in /exec.</p>
+  <p class="muted">Paste the Google Apps Script web-app URL ending in <b>/exec</b>.</p>
   <input id="backend" style="width:100%" placeholder="https://script.google.com/macros/s/.../exec">
   <div class="row" style="margin-top:10px"><button class="primary" id="saveSettings">Save & Test</button><button class="secondary" id="closeSettings">Close</button></div>
   <p id="testResult" class="muted"></p>
+  <p class="small muted">A failed test with a backend that opens directly usually means Apps Script was edited but the deployment was not updated to a new version.</p>
 </dialog>
 <script>
-const $=id=>document.getElementById(id),video=$('video'),canvas=$('canvas'),ctx=canvas.getContext('2d');let worker,stream,session=0,busy=false;
+const $=id=>document.getElementById(id),video=$('video'),canvas=$('canvas'),ctx=canvas.getContext('2d');
+let worker=null,stream=null,busy=false,running=false,session=0,loopTimer=null,waitingForRemoval=false,lastFrame=null,emptyCount=0;
 $('backend').value=localStorage.getItem('pokemonBackend')||'';
-$('settings').onclick=()=>$('settingsDialog').showModal();$('closeSettings').onclick=()=>$('settingsDialog').close();
-$('saveSettings').onclick=async()=>{const url=$('backend').value.trim().replace(/\/$/,'');localStorage.setItem('pokemonBackend',url);try{const r=await jsonp(url,{action:'ping'});$('testResult').textContent=r.ok?'Connected successfully':'Connection failed';if(r.ok)status('Backend connected — start camera')}catch(e){$('testResult').textContent=e.message}};
-$('start').onclick=async()=>{try{status('Starting camera…');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});video.srcObject=stream;await video.play();status('Loading OCR…');worker=await Tesseract.createWorker('eng');$('scan').disabled=false;$('start').disabled=true;status('Ready — center card and tap Scan Card')}catch(e){status('Camera error: '+e.message,true)}};
-$('scan').onclick=scanCard;$('undo').onclick=async()=>{try{const r=await jsonp(getBackend(),{action:'undo'});status(r.ok?'Undid '+r.name:r.message)}catch(e){status(e.message,true)}};
-async function scanCard(){if(busy)return;busy=true;try{status('Reading card…');canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0);const top=crop(.04,.02,.92,.25),bottom=crop(.02,.70,.96,.29);const [t,b]=await Promise.all([ocr(top),ocr(bottom)]);const parsed=parse(t,b);if(!parsed.name&&!parsed.number)throw new Error('Could not read the name or card number. Try brighter, flatter light.');status('Searching '+(parsed.name||parsed.number)+'…');const cards=await searchCards(parsed);if(!cards.length)throw new Error('No matching cards found.');showChoices(cards,parsed)}catch(e){status(e.message,true);$('result').innerHTML='<div class="error">'+esc(e.message)+'</div>'}finally{busy=false}}
-function crop(x,y,w,h){const c=document.createElement('canvas');c.width=canvas.width*w;c.height=canvas.height*h;c.getContext('2d').drawImage(canvas,canvas.width*x,canvas.height*y,canvas.width*w,canvas.height*h,0,0,c.width,c.height);return c}
+$('settings').onclick=()=>$('settingsDialog').showModal();
+$('closeSettings').onclick=()=>$('settingsDialog').close();
+$('saveSettings').onclick=testBackend;
+$('start').onclick=startCamera;
+$('scan').onclick=()=>scanCard(true);
+$('undo').onclick=undo;
+
+async function testBackend(){
+  const url=$('backend').value.trim().replace(/\/$/,'');
+  if(!/\/exec$/.test(url)){setTest('URL must end in /exec',false);return}
+  localStorage.setItem('pokemonBackend',url);setTest('Testing…');
+  try{
+    const r=await jsonp(url,{action:'ping',v:'2',_:Date.now()});
+    if(r&&r.ok&&r.message==='Backend connected'){setTest('Connected successfully',true);status('Backend connected — start camera');}
+    else if(r&&r.ok){setTest('Backend is an older deployment. Update the Apps Script deployment to a new version.',false);}
+    else setTest((r&&r.error)||'Backend test failed',false);
+  }catch(e){setTest('Could not run the backend callback. Redeploy Apps Script as a new version, access: Anyone.',false)}
+}
+function setTest(text,ok){$('testResult').textContent=text;$('testResult').className='muted '+(ok===true?'backend-good':ok===false?'backend-bad':'')}
+
+async function startCamera(){
+  try{
+    status('Starting camera…');
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    video.srcObject=stream;await video.play();
+    status('Loading OCR…');worker=await Tesseract.createWorker('eng');
+    running=true;$('start').disabled=true;$('scan').disabled=false;status('Ready — center a card');schedule(900);
+  }catch(e){status('Camera error: '+e.message,true)}
+}
+function schedule(ms){clearTimeout(loopTimer);if(running&&$('rapid').checked)loopTimer=setTimeout(autoLoop,ms)}
+async function autoLoop(){
+  if(busy){schedule(500);return}
+  if(waitingForRemoval){
+    const diff=frameDifference();
+    if(diff>20){emptyCount++;if(emptyCount>=2){waitingForRemoval=false;emptyCount=0;status('Ready — show next card')}}else emptyCount=0;
+    schedule(650);return;
+  }
+  await scanCard(false);schedule(waitingForRemoval?650:1500);
+}
+
+async function scanCard(manual){
+  if(busy||!worker||!video.videoWidth)return;busy=true;$('scan').disabled=true;
+  try{
+    status('Reading card…');capture();
+    const top=crop(.04,.015,.92,.25),bottom=crop(.02,.69,.96,.30);
+    const [t,b]=await Promise.all([ocr(top),ocr(bottom)]);const parsed=parse(t,b);
+    if(!parsed.name&&!parsed.number){if(manual)throw new Error('Could not read the name or collector number. Use brighter, flatter light.');status('Hold card steady…');return}
+    status('Searching '+(parsed.name||parsed.number)+'…');const cards=await searchCards(parsed);
+    if(!cards.length){if(manual)throw new Error('No matching cards found.');status('No match — adjust card');return}
+    if(cards[0].score>=90){await addCard(cards[0],parsed);return}
+    showChoices(cards,parsed);running=false;
+  }catch(e){status(e.message,true);$('result').innerHTML='<div class="error">'+esc(e.message)+'</div>'}
+  finally{busy=false;$('scan').disabled=false}
+}
+function capture(){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0);lastFrame=sampleFrame()}
+function sampleFrame(){const w=32,h=32,c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(video,0,0,w,h);return c.getContext('2d').getImageData(0,0,w,h).data}
+function frameDifference(){const now=sampleFrame();if(!lastFrame){lastFrame=now;return 0}let sum=0,n=0;for(let i=0;i<now.length;i+=16){sum+=Math.abs(now[i]-lastFrame[i])+Math.abs(now[i+1]-lastFrame[i+1])+Math.abs(now[i+2]-lastFrame[i+2]);n+=3}return sum/n}
+function crop(x,y,w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(canvas.width*w));c.height=Math.max(1,Math.round(canvas.height*h));c.getContext('2d').drawImage(canvas,canvas.width*x,canvas.height*y,canvas.width*w,canvas.height*h,0,0,c.width,c.height);return c}
 async function ocr(c){const r=await worker.recognize(c);return r.data.text||''}
-function parse(top,bottom){const lines=top.split(/\n/).map(s=>s.trim()).filter(Boolean);const blocked=/^(basic|stage|trainer|energy|item|supporter|stadium|hp\s*\d+)/i;let name=(lines.find(x=>x.length>=3&&x.length<=28&&!blocked.test(x)&&!/^\d/.test(x))||'').replace(/[^A-Za-z0-9 .\-'éÉ♀♂]/g,'').trim();const m=bottom.match(/\b([A-Z]{0,4}\d{1,4})\s*[\/|]\s*[A-Z]{0,4}\d{1,4}\b/i);return{name,number:m?m[1].toUpperCase():'',ocrText:(top+' '+bottom).replace(/\s+/g,' ').trim()}}
-async function searchCards(p){const qs=[];if(p.name&&p.number)qs.push(`name:"${p.name.replace(/"/g,'')}" number:${p.number}`);if(p.number)qs.push(`number:${p.number}`);if(p.name)qs.push(`name:"${p.name.replace(/"/g,'')}"`);const found=new Map();for(const q of qs){const r=await fetch('https://api.pokemontcg.io/v2/cards?q='+encodeURIComponent(q)+'&pageSize=20');if(!r.ok)continue;const data=(await r.json()).data||[];for(const c of data)if(!found.has(c.id)){c.score=score(c,p);found.set(c.id,c)}}return [...found.values()].sort((a,b)=>b.score-a.score).slice(0,5).map(c=>({id:c.id,name:c.name,number:c.number,set:c.set?.name||'',setCode:c.set?.id||'',rarity:c.rarity||'',supertype:c.supertype||'',subtypes:c.subtypes||[],hp:c.hp||'',abilities:(c.abilities||[]).map(a=>a.name+(a.text?': '+a.text:'')).join(' | '),attacks:(c.attacks||[]).map(a=>a.name+(a.damage?' ['+a.damage+']':'')+(a.text?': '+a.text:'')).join(' | '),image:c.images?.small||'',score:c.score}))}
-function score(c,p){let s=0;if(p.number&&String(c.number).toUpperCase()===p.number)s+=55;const a=(c.name||'').toLowerCase(),b=(p.name||'').toLowerCase();if(a===b)s+=40;else if(a.includes(b)||b.includes(a))s+=25;return Math.min(100,s)}
-function showChoices(cards,p){$('result').innerHTML='<div class="muted">Tap the correct card:</div><div class="choices">'+cards.map((c,i)=>`<div class="choice" data-i="${i}"><img src="${c.image}"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.set)} • ${esc(c.number)} • ${c.score}%</div></div></div>`).join('')+'</div>';document.querySelectorAll('.choice').forEach(el=>el.onclick=()=>addCard(cards[Number(el.dataset.i)],p));status('Confirm the match')}
-async function addCard(card,p){try{status('Adding '+card.name+'…');const r=await jsonp(getBackend(),{action:'add',finish:$('finish').value,confidence:card.score,ocrName:p.name,ocrNumber:p.number,ocrText:p.ocrText,card:JSON.stringify(card)});if(!r.ok)throw new Error(r.error||'Could not add card');session++;$('count').textContent=session+' scanned';$('result').innerHTML=`<div class="match"><img src="${card.image}"><div><div class="name">✓ ${esc(card.name)}</div><div>${esc(card.set)} • ${esc(card.number)}</div><div class="qty">Quantity: ${r.quantity}</div></div></div>`;if(navigator.vibrate)navigator.vibrate(120);status('Added — ready for next card')}catch(e){status(e.message,true)}}
+function parse(top,bottom){
+  const lines=top.split(/\n/).map(s=>s.trim()).filter(Boolean),blocked=/^(basic|stage|trainer|energy|item|supporter|stadium|hp\s*\d+)/i;
+  let name=(lines.find(x=>x.length>=3&&x.length<=30&&!blocked.test(x)&&!/^[\d\/]/.test(x))||'').replace(/[^A-Za-z0-9 .\-'éÉ♀♂]/g,'').trim();
+  const m=bottom.match(/\b([A-Z]{0,4}\d{1,4})\s*[\/|]\s*[A-Z]{0,4}\d{1,4}\b/i);
+  return{name,number:m?m[1].toUpperCase():'',ocrText:(top+' '+bottom).replace(/\s+/g,' ').trim()}
+}
+async function searchCards(p){
+  const qs=[];if(p.name&&p.number)qs.push(`name:"${p.name.replace(/"/g,'')}" number:${p.number}`);if(p.number)qs.push(`number:${p.number}`);if(p.name)qs.push(`name:"${p.name.replace(/"/g,'')}"`);
+  const found=new Map();for(const q of qs){const r=await fetch('https://api.pokemontcg.io/v2/cards?q='+encodeURIComponent(q)+'&pageSize=20');if(!r.ok)continue;for(const c of((await r.json()).data||[]))if(!found.has(c.id)){c.score=score(c,p);found.set(c.id,c)}}
+  return[...found.values()].sort((a,b)=>b.score-a.score).slice(0,5).map(c=>({id:c.id,name:c.name,number:c.number,set:c.set?.name||'',setCode:c.set?.id||'',rarity:c.rarity||'',supertype:c.supertype||'',subtypes:c.subtypes||[],hp:c.hp||'',abilities:(c.abilities||[]).map(a=>a.name+(a.text?': '+a.text:'')).join(' | '),attacks:(c.attacks||[]).map(a=>a.name+(a.damage?' ['+a.damage+']':'')+(a.text?': '+a.text:'')).join(' | '),image:c.images?.small||'',score:c.score}))
+}
+function score(c,p){let s=0;if(p.number&&String(c.number).toUpperCase()===p.number)s+=55;const a=(c.name||'').toLowerCase(),b=(p.name||'').toLowerCase();if(b&&a===b)s+=40;else if(b&&(a.includes(b)||b.includes(a)))s+=25;return Math.min(100,s)}
+function showChoices(cards,p){
+  $('result').innerHTML='<div class="muted">Tap the correct card:</div><div class="choices">'+cards.map((c,i)=>`<div class="choice" data-i="${i}"><img src="${c.image}"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.set)} • ${esc(c.number)} • ${c.score}%</div></div></div>`).join('')+'</div>';
+  document.querySelectorAll('.choice').forEach(el=>el.onclick=async()=>{await addCard(cards[Number(el.dataset.i)],p);running=true;schedule(700)});status('Confirm the match')
+}
+async function addCard(card,p){
+  status('Adding '+card.name+'…');const r=await jsonp(getBackend(),{action:'add',finish:$('finish').value,confidence:card.score,ocrName:p.name,ocrNumber:p.number,ocrText:p.ocrText,card:JSON.stringify(card),_:Date.now()});
+  if(!r||!r.ok)throw new Error((r&&r.error)||'Could not add card');session++;$('count').textContent=session+' scanned';
+  $('result').innerHTML=`<div class="match"><img src="${card.image}"><div><div class="name">✓ ${esc(card.name)}</div><div>${esc(card.set)} • ${esc(card.number)}</div><div class="qty">Quantity: ${r.quantity}</div></div></div>`;
+  if(navigator.vibrate)navigator.vibrate(120);beep();waitingForRemoval=true;status('Added — remove card');
+}
+async function undo(){try{const r=await jsonp(getBackend(),{action:'undo',_:Date.now()});status(r.ok?'Undid '+r.name:r.message);if(r.ok&&session>0){session--;$('count').textContent=session+' scanned'}}catch(e){status(e.message,true)}}
 function getBackend(){const u=localStorage.getItem('pokemonBackend');if(!u)throw new Error('Open Settings and add the Apps Script /exec URL first.');return u}
-function jsonp(url,params){return new Promise((resolve,reject)=>{const cb='pokeCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const timer=setTimeout(()=>done(new Error('Backend timed out')),15000);window[cb]=data=>done(null,data);function done(err,data){clearTimeout(timer);delete window[cb];script.remove();err?reject(err):resolve(data)}script.onerror=()=>done(new Error('Could not reach backend'));script.src=url+'?'+new URLSearchParams({...params,callback:cb});document.body.appendChild(script)})}
-function status(m,e=false){$('status').textContent=m;$('status').className='status'+(e?' error':'')}function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-if(!$('backend').value)$('settingsDialog').showModal();else status('Backend saved — start camera');
+function jsonp(url,params){return new Promise((resolve,reject)=>{const cb='pokeCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let finished=false;const timer=setTimeout(()=>done(new Error('Backend callback timed out')),12000);window[cb]=data=>done(null,data);function done(err,data){if(finished)return;finished=true;clearTimeout(timer);delete window[cb];s.remove();err?reject(err):resolve(data)}s.onerror=()=>done(new Error('Backend did not return JavaScript. Update the Apps Script deployment to the latest code.'));s.src=url+'?'+new URLSearchParams({...params,callback:cb});document.body.appendChild(s)})}
+function status(m,e=false){$('status').textContent=m;$('status').className='status'+(e?' error':'')}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
+function beep(){try{const ac=new(window.AudioContext||window.webkitAudioContext)(),o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.value=.07;o.start();o.stop(ac.currentTime+.09)}catch(e){}}
+if(!$('backend').value)$('settingsDialog').showModal();else status('Backend saved — test it in Settings');
 </script>
 </body>
 </html>
